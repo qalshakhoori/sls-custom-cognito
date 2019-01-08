@@ -1,0 +1,127 @@
+service: ${file(./config.json):serviceName}
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  region: ${opt:region, 'us-east-1'}
+  stage: ${file(./sls_execlude/config.js):stage}
+  memorySize: 128
+package:
+  exclude:
+  - sls_execlude/**
+functions:
+  CFNSendResponse:
+    handler: CFNSendResponse.handler
+    role: LambdaforCognito
+  CUPDomain:
+    handler: CUPDomain.handler
+    role: LambdaforCognito
+  CUPClientSettings:
+    handler: CUPClientSettings.handler
+    role: LambdaforCognito
+
+resources:
+  Resources:
+    LambdaforCognito:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        RoleName: ${self:service}-${self:provider.stage}-LambdaforCognito
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            -
+              Effect: Allow
+              Action: 'sts:AssumeRole'
+              Principal:
+                Service: lambda.amazonaws.com
+        Policies:
+          -
+            PolicyName: WriteCloudWatchLogs
+            PolicyDocument: 
+              Version: '2012-10-17'
+              Statement: 
+                -
+                  Effect: Allow
+                  Action:
+                    - 'logs:CreateLogGroup'
+                    - 'logs:CreateLogStream'
+                    - 'logs:PutLogEvents'
+                  Resource: 'arn:aws:logs:*:*:*'
+          -
+            PolicyName: UpdateUserPoolClient
+            PolicyDocument: 
+              Version: '2012-10-17'
+              Statement: 
+                -
+                  Effect: Allow
+                  Action: 'cognito-idp:UpdateUserPoolClient'
+                  Resource: 'arn:aws:cognito-idp:*:*:userpool/*'
+          -
+            PolicyName: ManageUserPoolDomain
+            PolicyDocument: 
+              Version: '2012-10-17'
+              Statement: 
+                -
+                  Effect: Allow
+                  Action: 'cognito-idp:CreateUserPoolDomain'
+                  Resource: 'arn:aws:cognito-idp:*:*:userpool/*'
+                -
+                  Effect: Allow
+                  Action: 'cognito-idp:DeleteUserPoolDomain'
+                  Resource: 'arn:aws:cognito-idp:*:*:userpool/*'
+                -
+                  Effect: Allow
+                  Action: 'cognito-idp:DescribeUserPoolDomain'
+                  Resource: '*'
+          -
+            PolicyName: InvokeLambdaFunction
+            PolicyDocument: 
+              Version: '2012-10-17'
+              Statement: 
+                -
+                  Effect: Allow
+                  Action: 'lambda:InvokeFunction'
+                  Resource: 'arn:aws:lambda:*:*:function:*'
+    AppUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: AppUserPool
+    AppUserPoolClient:
+      Type: 'AWS::Cognito::UserPoolClient'
+      Properties:
+        ClientName: AppUserPoolClient
+        GenerateSecret: true
+        UserPoolId: 
+          Ref: AppUserPool
+    AppUserPoolClientSettings:
+      Type: 'Custom::${self:service}-${self:provider.stage}-CUPClientSettings'
+      DependsOn:
+        - CFNSendResponseLambdaFunction
+        - CUPClientSettingsLambdaFunction
+      Properties:
+        ServiceToken:
+          Fn::GetAtt: [ CUPClientSettingsLambdaFunction, Arn]
+        UserPoolId: 
+          Ref: AppUserPool
+        UserPoolClientId: 
+          Ref: AppUserPoolClient
+        SupportedIdentityProviders:
+          - COGNITO
+        CallbackURL: 'https://www.amazon.com' ##Replace this with your app callback url
+        LogoutURL: 'https://www.amazon.com' ##Replace this with your app logout url
+        AllowedOAuthFlowsUserPoolClient: true
+        AllowedOAuthFlows:
+          - code
+        AllowedOAuthScopes:
+          - openid
+    AppUserPoolDomain:
+      Type: 'Custom::${self:service}-${self:provider.stage}-CUPDomain'
+      DependsOn:
+        - CFNSendResponseLambdaFunction
+        - CUPDomainLambdaFunction
+      Properties:
+        ServiceToken:
+          Fn::GetAtt: [ CUPDomainLambdaFunction, Arn]
+        UserPoolId: 
+          Ref: AppUserPool
+        Domain: 'appuserpool0123'
