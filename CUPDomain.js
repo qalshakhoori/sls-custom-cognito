@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-const { getSLSFunctionName } = require('./SLS');
+const { sendCFNResponse } = require('./SLS');
 
 module.exports.handler = async (event) => {
     try {
@@ -27,11 +27,11 @@ module.exports.handler = async (event) => {
                 break;
         }
 
-        await sendCloudFormationResponse(event, 'SUCCESS');
+        await sendCFNResponse(event, 'SUCCESS');
         console.info(`CognitoUserPoolDomain Success for request type ${event.RequestType}`);
     } catch (error) {
         console.error(`CognitoUserPoolDomain Error for request type ${event.RequestType}:`, error);
-        await sendCloudFormationResponse(event, 'FAILED');
+        await sendCFNResponse(event, 'FAILED');
     }
 }
 
@@ -45,28 +45,5 @@ async function deleteUserPoolDomain(cognitoIdentityServiceProvider, domain) {
             UserPoolId: response.DomainDescription.UserPoolId,
             Domain: domain
         }).promise();
-    }
-}
-
-async function sendCloudFormationResponse(event, responseStatus, responseData) {
-    var params = {
-        FunctionName: getSLSFunctionName('CFNSendResponse'),
-        InvocationType: 'RequestResponse',
-        Payload: JSON.stringify({
-            StackId: event.StackId,
-            RequestId: event.RequestId,
-            LogicalResourceId: event.LogicalResourceId,
-            ResponseURL: event.ResponseURL,
-            ResponseStatus: responseStatus,
-            ResponseData: responseData
-        })
-    };
-
-    var lambda = new AWS.Lambda();
-    var response = await lambda.invoke(params).promise();
-
-    if (response.FunctionError) {
-        var responseError = JSON.parse(response.Payload);
-        throw new Error(responseError.errorMessage);
     }
 }

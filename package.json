@@ -12,6 +12,7 @@
     "axios": "^0.18.0"
   },
   "devDependencies": {
+    "aws-sdk": "^2.384.0",
     "edit-json-file": "^1.2.1"
   }
 }

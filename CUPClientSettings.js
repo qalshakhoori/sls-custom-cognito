@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-const { getSLSFunctionName } = require('./SLS');
+const { sendCFNResponse } = require('./SLS');
 
 module.exports.handler = async (event) => {
     try {
@@ -19,22 +19,22 @@ module.exports.handler = async (event) => {
                     AllowedOAuthScopes: event.ResourceProperties.AllowedOAuthScopes
                 }).promise();
 
-                await sendCloudFormationResponse(event, 'SUCCESS');
+                await sendCFNResponse(event, 'SUCCESS');
                 break;
 
             case 'Delete':
-                await sendCloudFormationResponse(event, 'SUCCESS');
+                await sendCFNResponse(event, 'SUCCESS');
                 break;
         }
 
         console.info(`CognitoUserPoolClientSettings Success for request type ${event.RequestType}`);
     } catch (error) {
         console.error(`CognitoUserPoolClientSettings Error for request type ${event.RequestType}:`, error);
-        await sendCloudFormationResponse(event, 'FAILED');
+        await sendCFNResponse(event, 'FAILED');
     }
 }
 
-async function sendCloudFormationResponse(event, responseStatus, responseData) {
+/*async function sendCFNResponse(event, responseStatus, responseData) {
     var params = {
         FunctionName: getSLSFunctionName('CFNSendResponse'),
         InvocationType: 'RequestResponse',
@@ -55,4 +55,4 @@ async function sendCloudFormationResponse(event, responseStatus, responseData) {
         var responseError = JSON.parse(response.Payload);
         throw new Error(responseError.errorMessage);
     }
-}
+}*/
