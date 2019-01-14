@@ -1,29 +1,29 @@
-const AWS = require('aws-sdk');
+const { CognitoIdentityServiceProvider } = require('aws-sdk');
 const { sendCFNResponse } = require('./SLS');
 
 module.exports.handler = async (event) => {
     try {
-        var cognitoIdentityServiceProvider = new AWS.CognitoIdentityServiceProvider();
+        const cognitoISP = new CognitoIdentityServiceProvider();
 
         switch (event.RequestType) {
             case 'Create':
-                await cognitoIdentityServiceProvider.createUserPoolDomain({
+                await cognitoISP.createUserPoolDomain({
                     UserPoolId: event.ResourceProperties.UserPoolId,
                     Domain: event.ResourceProperties.Domain
                 }).promise();
                 break;
 
             case 'Update':
-                await deleteUserPoolDomain(cognitoIdentityServiceProvider, event.OldResourceProperties.Domain);
+                await deleteUserPoolDomain(cognitoISP, event.OldResourceProperties.Domain);
 
-                await cognitoIdentityServiceProvider.createUserPoolDomain({
+                await cognitoISP.createUserPoolDomain({
                     UserPoolId: event.ResourceProperties.UserPoolId,
                     Domain: event.ResourceProperties.Domain
                 }).promise();
                 break;
 
             case 'Delete':
-                await deleteUserPoolDomain(cognitoIdentityServiceProvider, event.ResourceProperties.Domain);
+                await deleteUserPoolDomain(cognitoISP, event.ResourceProperties.Domain);
                 break;
         }
 
@@ -35,13 +35,13 @@ module.exports.handler = async (event) => {
     }
 }
 
-async function deleteUserPoolDomain(cognitoIdentityServiceProvider, domain) {
-    var response = await cognitoIdentityServiceProvider.describeUserPoolDomain({
+async function deleteUserPoolDomain(cognitoISP, domain) {
+    var response = await cognitoISP.describeUserPoolDomain({
         Domain: domain
     }).promise();
 
     if (response.DomainDescription.Domain) {
-        await cognitoIdentityServiceProvider.deleteUserPoolDomain({
+        await cognitoISP.deleteUserPoolDomain({
             UserPoolId: response.DomainDescription.UserPoolId,
             Domain: domain
         }).promise();

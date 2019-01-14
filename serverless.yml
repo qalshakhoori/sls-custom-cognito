@@ -19,6 +19,9 @@ functions:
   CUPClientSettings:
     handler: CUPClientSettings.handler
     role: LambdaforCognito
+  CUPIdentityProvider:
+    handler: CUPIdentityProvider.handler
+    role: LambdaforCognito
 
 resources:
   Resources:
@@ -74,6 +77,23 @@ resources:
                   Action: 'cognito-idp:DescribeUserPoolDomain'
                   Resource: '*'
           -
+            PolicyName: ManageUserPoolIdentityProviders
+            PolicyDocument: 
+              Version: '2012-10-17'
+              Statement: 
+                -
+                  Effect: Allow
+                  Action: 'cognito-idp:CreateIdentityProvider'
+                  Resource: 'arn:aws:cognito-idp:*:*:userpool/*'
+                -
+                  Effect: Allow
+                  Action: 'cognito-idp:UpdateIdentityProvider'
+                  Resource: 'arn:aws:cognito-idp:*:*:userpool/*'
+                -
+                  Effect: Allow
+                  Action: 'cognito-idp:DeleteIdentityProvider'
+                  Resource: 'arn:aws:cognito-idp:*:*:userpool/*'
+          -
             PolicyName: InvokeLambdaFunction
             PolicyDocument: 
               Version: '2012-10-17'
@@ -93,27 +113,6 @@ resources:
         GenerateSecret: true
         UserPoolId: 
           Ref: AppUserPool
-    AppUserPoolClientSettings:
-      Type: 'Custom::${self:service}-${self:provider.stage}-CUPClientSettings'
-      DependsOn:
-        - CFNSendResponseLambdaFunction
-        - CUPClientSettingsLambdaFunction
-      Properties:
-        ServiceToken:
-          Fn::GetAtt: [ CUPClientSettingsLambdaFunction, Arn]
-        UserPoolId: 
-          Ref: AppUserPool
-        UserPoolClientId: 
-          Ref: AppUserPoolClient
-        SupportedIdentityProviders:
-          - COGNITO
-        CallbackURL: 'https://www.amazon.com' ##Replace this with your app callback url
-        LogoutURL: 'https://www.amazon.com' ##Replace this with your app logout url
-        AllowedOAuthFlowsUserPoolClient: true
-        AllowedOAuthFlows:
-          - code
-        AllowedOAuthScopes:
-          - openid
     AppUserPoolDomain:
       Type: 'Custom::${self:service}-${self:provider.stage}-CUPDomain'
       DependsOn:
@@ -125,3 +124,75 @@ resources:
         UserPoolId: 
           Ref: AppUserPool
         Domain: 'appuserpool01234'
+    FacebookIdp:
+      Type: 'Custom::${self:service}-${self:provider.stage}-CUPIdentityProvider'
+      DependsOn:
+        - CFNSendResponseLambdaFunction
+        - CUPIdentityProviderLambdaFunction
+      Properties:
+        ServiceToken:
+          Fn::GetAtt: [CUPIdentityProviderLambdaFunction, Arn]
+        UserPoolId:
+          Ref: AppUserPool
+        ProviderName: Facebook
+        ProviderType: Facebook
+        Client_id: 'YourFacebookAppID'
+        Client_secret: 'YourFacebookAppSecert'
+        Authorize_scopes: 'public_profile,email'
+    GoogleIdp:
+      Type: 'Custom::${self:service}-${self:provider.stage}-CUPIdentityProvider'
+      DependsOn:
+        - CFNSendResponseLambdaFunction
+        - CUPIdentityProviderLambdaFunction
+      Properties:
+        ServiceToken:
+          Fn::GetAtt: [CUPIdentityProviderLambdaFunction, Arn]
+        UserPoolId:
+          Ref: AppUserPool
+        ProviderName: Google
+        ProviderType: Google
+        Client_id: 'YourGoogleAppID'
+        Client_secret: 'YourGoogleAppSecert'
+        Authorize_scopes: 'public_profile,email'
+    AmazonIdp:
+      Type: 'Custom::${self:service}-${self:provider.stage}-CUPIdentityProvider'
+      DependsOn:
+        - CFNSendResponseLambdaFunction
+        - CUPIdentityProviderLambdaFunction
+      Properties:
+        ServiceToken:
+          Fn::GetAtt: [CUPIdentityProviderLambdaFunction, Arn]
+        UserPoolId:
+          Ref: AppUserPool
+        ProviderName: LoginWithAmazon
+        ProviderType: LoginWithAmazon
+        Client_id: 'YourAmazonAppID'
+        Client_secret: 'YourAmazonAppSecert'
+        Authorize_scopes: 'email'
+    AppUserPoolClientSettings:
+      Type: 'Custom::${self:service}-${self:provider.stage}-CUPClientSettings'
+      DependsOn:
+        - CFNSendResponseLambdaFunction
+        - CUPClientSettingsLambdaFunction
+        - FacebookIdp
+        - GoogleIdp
+        - AmazonIdp
+      Properties:
+        ServiceToken:
+          Fn::GetAtt: [ CUPClientSettingsLambdaFunction, Arn]
+        UserPoolId: 
+          Ref: AppUserPool
+        UserPoolClientId: 
+          Ref: AppUserPoolClient
+        SupportedIdentityProviders:
+          - COGNITO
+          - Facebook
+          - Google
+          # - LoginWithAmazon
+        CallbackURL: 'https://www.yourdomain.com/callback' ##Replace this with your app callback url
+        LogoutURL: 'https://www.yourdomain.com/logout' ##Replace this with your app logout url
+        AllowedOAuthFlowsUserPoolClient: true
+        AllowedOAuthFlows:
+          - code
+        AllowedOAuthScopes:
+          - openid

@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk');
+const { CognitoIdentityServiceProvider } = require('aws-sdk');
 const { sendCFNResponse } = require('./SLS');
 
 module.exports.handler = async (event) => {
@@ -6,9 +6,9 @@ module.exports.handler = async (event) => {
         switch (event.RequestType) {
             case 'Create':
             case 'Update':
-                var cognitoIdentityServiceProvider = new AWS.CognitoIdentityServiceProvider();
+                const cognitoISP = new CognitoIdentityServiceProvider();
 
-                await cognitoIdentityServiceProvider.updateUserPoolClient({
+                await cognitoISP.updateUserPoolClient({
                     UserPoolId: event.ResourceProperties.UserPoolId,
                     ClientId: event.ResourceProperties.UserPoolClientId,
                     SupportedIdentityProviders: event.ResourceProperties.SupportedIdentityProviders,
@@ -33,26 +33,3 @@ module.exports.handler = async (event) => {
         await sendCFNResponse(event, 'FAILED');
     }
 }
-
-/*async function sendCFNResponse(event, responseStatus, responseData) {
-    var params = {
-        FunctionName: getSLSFunctionName('CFNSendResponse'),
-        InvocationType: 'RequestResponse',
-        Payload: JSON.stringify({
-            StackId: event.StackId,
-            RequestId: event.RequestId,
-            LogicalResourceId: event.LogicalResourceId,
-            ResponseURL: event.ResponseURL,
-            ResponseStatus: responseStatus,
-            ResponseData: responseData
-        })
-    };
-
-    var lambda = new AWS.Lambda();
-    var response = await lambda.invoke(params).promise();
-
-    if (response.FunctionError) {
-        var responseError = JSON.parse(response.Payload);
-        throw new Error(responseError.errorMessage);
-    }
-}*/

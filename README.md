@@ -8,6 +8,7 @@ What this repo does for you:
 1- IAM role associated with lambda functions to allow cognito user pool modifications.  
 2- Lambda functions to configure user pool client settings and user pool domain.  
 3- Cognito user pool with configured client settings and domain.  
+4- Identity providers configuration for cognito user pool.
   
 Before you use this repo you need to ensure that you have [Node.js](https://nodejs.org) and [Serverless framework](https://serverless.com/) installed on your machine.  
 To install serverless using npm run  
