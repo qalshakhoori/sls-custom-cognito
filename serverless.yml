@@ -188,7 +188,7 @@ resources:
           - COGNITO
           - Facebook
           - Google
-          # - LoginWithAmazon
+          - LoginWithAmazon
         CallbackURL: 'https://www.yourdomain.com/callback' ##Replace this with your app callback url
         LogoutURL: 'https://www.yourdomain.com/logout' ##Replace this with your app logout url
         AllowedOAuthFlowsUserPoolClient: true
