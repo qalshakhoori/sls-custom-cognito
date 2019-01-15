@@ -1,4 +1,4 @@
 {
-    "serviceName": "SLS-Cognito",
-    "stage": "dev"
-  }
+  "serviceName": "SLS-Cognito",
+  "stage": "dev"
+}
