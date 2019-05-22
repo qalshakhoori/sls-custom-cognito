@@ -1,11 +1,11 @@
 const axios = require('axios');
 const uuidv1 = require('uuid/v1');
 
-module.exports = async (event, Status, Data = {}, error = null) => {
+module.exports = async (event, Status, Data = {}, error = '') => {
     const { PhysicalResourceId, StackId, RequestId, LogicalResourceId } = event;
     const responseBody = JSON.stringify({
         Status,
-        Reason: error || undefined,
+        Reason: error,
         PhysicalResourceId: PhysicalResourceId || uuidv1(),
         StackId,
         RequestId,

@@ -34,7 +34,7 @@ module.exports.handler = async (event) => {
         console.info(`CognitoUserPoolDomain Success for request type ${event.RequestType}`);
     } catch (error) {
         console.error(`CognitoUserPoolDomain Error for request type ${event.RequestType}:`, error);
-        await sendCFNResponse(event, 'FAILED', {}, error);
+        await sendCFNResponse(event, 'FAILED', {}, error.message);
     }
 }
 

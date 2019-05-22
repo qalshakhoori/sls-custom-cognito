@@ -63,6 +63,6 @@ module.exports.handler = async (event) => {
         console.info(`CognitoIdentityProvider Success for request type ${event.RequestType}`);
     } catch (error) {
         console.error(`CognitoIdentityProvider Error for request type ${event.RequestType}:`, error);
-        await sendCFNResponse(event, 'FAILED', {}, error);
+        await sendCFNResponse(event, 'FAILED', {}, error.message);
     }
 }
