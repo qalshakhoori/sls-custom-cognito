@@ -1,34 +1,30 @@
 const axios = require('axios');
+const uuidv1 = require('uuid/v1');
 
-module.exports.handler = async (event, context) => {
-    var reason = event.ResponseStatus == 'FAILED' ? ('See the details in CloudWatch Log Stream: ' + context.logStreamName) : undefined;
-    
-    var responseBody = JSON.stringify({
-        Status: event.ResponseStatus,
-        Reason: reason,
-        PhysicalResourceId: context.logStreamName,
-        StackId: event.StackId,
-        RequestId: event.RequestId,
-        LogicalResourceId: event.LogicalResourceId,
-        Data: event.ResponseData
+module.exports = async (event, Status, Data = {}, error = null) => {
+    const { PhysicalResourceId, StackId, RequestId, LogicalResourceId } = event;
+    const responseBody = JSON.stringify({
+        Status,
+        Reason: error || undefined,
+        PhysicalResourceId: PhysicalResourceId || uuidv1(),
+        StackId,
+        RequestId,
+        LogicalResourceId,
+        Data
     });
-    
-    var responseOptions = {
+
+    const responseOptions = {
         headers: {
-            'content-type':   '',
+            'content-type': '',
             'content-length': responseBody.length
         }
     };
-    
     console.info('Response body:\n', responseBody);
-    
     try {
         await axios.put(event.ResponseURL, responseBody, responseOptions);
-        
         console.info('CloudFormationSendResponse Success');
     } catch (error) {
         console.error('CloudFormationSendResponse Error:');
-        
         if (error.response) {
             // The request was made and the server responded with a status code
             // that falls out of the range of 2xx
@@ -44,9 +40,7 @@ module.exports.handler = async (event, context) => {
             // Something happened in setting up the request that triggered an Error
             console.error('Error', error.message);
         }
-        
         console.error(error.config);
-        
         // A UnhandledPromiseRejectionWarning will be emitted here. See https://forums.aws.amazon.com/thread.jspa?threadID=283258 for details.
         throw new Error('Could not send CloudFormation response');
     }

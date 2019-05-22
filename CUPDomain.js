@@ -1,15 +1,18 @@
 const { CognitoIdentityServiceProvider } = require('aws-sdk');
-const { sendCFNResponse } = require('./SLS');
+const sendCFNResponse = require('./CFNSendResponse');
 
 module.exports.handler = async (event) => {
     try {
         const cognitoISP = new CognitoIdentityServiceProvider();
-
+        const { 
+            UserPoolId,
+            Domain
+         } = event.ResourceProperties;
         switch (event.RequestType) {
             case 'Create':
                 await cognitoISP.createUserPoolDomain({
-                    UserPoolId: event.ResourceProperties.UserPoolId,
-                    Domain: event.ResourceProperties.Domain
+                    UserPoolId,
+                    Domain
                 }).promise();
                 break;
 
@@ -17,13 +20,13 @@ module.exports.handler = async (event) => {
                 await deleteUserPoolDomain(cognitoISP, event.OldResourceProperties.Domain);
 
                 await cognitoISP.createUserPoolDomain({
-                    UserPoolId: event.ResourceProperties.UserPoolId,
-                    Domain: event.ResourceProperties.Domain
+                    UserPoolId,
+                    Domain
                 }).promise();
                 break;
 
             case 'Delete':
-                await deleteUserPoolDomain(cognitoISP, event.ResourceProperties.Domain);
+                await deleteUserPoolDomain(cognitoISP, Domain);
                 break;
         }
 
@@ -31,7 +34,7 @@ module.exports.handler = async (event) => {
         console.info(`CognitoUserPoolDomain Success for request type ${event.RequestType}`);
     } catch (error) {
         console.error(`CognitoUserPoolDomain Error for request type ${event.RequestType}:`, error);
-        await sendCFNResponse(event, 'FAILED');
+        await sendCFNResponse(event, 'FAILED', {}, error);
     }
 }
 

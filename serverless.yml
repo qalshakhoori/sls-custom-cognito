@@ -1,18 +1,13 @@
-service: ${file(./config.json):serviceName}
+service: SLS-Cognito
 
 provider:
   name: aws
   runtime: nodejs8.10
   region: ${opt:region, 'us-east-1'}
-  stage: ${file(./sls_execlude/config.js):stage}
+  stage: ${opt:stage, 'dev'}
   memorySize: 128
-package:
-  exclude:
-  - sls_execlude/**
+
 functions:
-  CFNSendResponse:
-    handler: CFNSendResponse.handler
-    role: LambdaforCognito
   CUPDomain:
     handler: CUPDomain.handler
     role: LambdaforCognito
@@ -93,15 +88,6 @@ resources:
                   Effect: Allow
                   Action: 'cognito-idp:DeleteIdentityProvider'
                   Resource: 'arn:aws:cognito-idp:*:*:userpool/*'
-          -
-            PolicyName: InvokeLambdaFunction
-            PolicyDocument: 
-              Version: '2012-10-17'
-              Statement: 
-                -
-                  Effect: Allow
-                  Action: 'lambda:InvokeFunction'
-                  Resource: 'arn:aws:lambda:*:*:function:*'
     AppUserPool:
       Type: AWS::Cognito::UserPool
       Properties:
@@ -116,7 +102,6 @@ resources:
     AppUserPoolDomain:
       Type: 'Custom::${self:service}-${self:provider.stage}-CUPDomain'
       DependsOn:
-        - CFNSendResponseLambdaFunction
         - CUPDomainLambdaFunction
       Properties:
         ServiceToken:
@@ -127,7 +112,6 @@ resources:
     FacebookIdp:
       Type: 'Custom::${self:service}-${self:provider.stage}-CUPIdentityProvider'
       DependsOn:
-        - CFNSendResponseLambdaFunction
         - CUPIdentityProviderLambdaFunction
       Properties:
         ServiceToken:
@@ -142,7 +126,6 @@ resources:
     GoogleIdp:
       Type: 'Custom::${self:service}-${self:provider.stage}-CUPIdentityProvider'
       DependsOn:
-        - CFNSendResponseLambdaFunction
         - CUPIdentityProviderLambdaFunction
       Properties:
         ServiceToken:
@@ -157,7 +140,6 @@ resources:
     AmazonIdp:
       Type: 'Custom::${self:service}-${self:provider.stage}-CUPIdentityProvider'
       DependsOn:
-        - CFNSendResponseLambdaFunction
         - CUPIdentityProviderLambdaFunction
       Properties:
         ServiceToken:
@@ -172,7 +154,6 @@ resources:
     AppUserPoolClientSettings:
       Type: 'Custom::${self:service}-${self:provider.stage}-CUPClientSettings'
       DependsOn:
-        - CFNSendResponseLambdaFunction
         - CUPClientSettingsLambdaFunction
         - FacebookIdp
         - GoogleIdp
