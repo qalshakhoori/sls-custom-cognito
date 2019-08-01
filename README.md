@@ -1,28 +1,30 @@
 ## Cusom Cognito CloudFormation resources using serverless framework
 
 At first I would like to thank Rosberg Linhares for his great work at [this repo](https://github.com/rosberglinhares/CloudFormationCognitoCustomResources).  
-I used his work to make custom cognito resources with [Serverless framework](https://serverless.com/).  
-  
-  
+I used his work to make custom cognito resources with [Serverless framework](https://serverless.com/).
+
 What this repo does for you:  
 1- IAM role associated with lambda functions to allow cognito user pool modifications.  
 2- Lambda functions to configure user pool client settings and user pool domain.  
 3- Cognito user pool with configured client settings and domain.  
 4- Identity providers configuration for cognito user pool.
-  
+
 Before you use this repo you need to ensure that you have [Node.js](https://nodejs.org) and [Serverless framework](https://serverless.com/) installed on your machine.  
 To install serverless using npm run
+
 ```
 npm install -g serverless
 ```
-  
+
 To use this repo, clone it to your local machine and run:
+
 ```
 npm install
 serverless deploy
 ```
 
 To create your user pool domain, use the below cloudformation script and change the domain name
+
 ```
     AppUserPoolDomain:
       Type: 'Custom::${self:service}-${self:provider.stage}-CUPDomain'
@@ -32,12 +34,13 @@ To create your user pool domain, use the below cloudformation script and change 
       Properties:
         ServiceToken:
           Fn::GetAtt: [ CUPDomainLambdaFunction, Arn]
-        UserPoolId: 
+        UserPoolId:
           Ref: AppUserPool
         Domain: 'appuserpool01234'
 ```
 
 To create a new identity provider for your user pool, for example Facebook
+
 ```
     FacebookIdp:
       Type: 'Custom::${self:service}-${self:provider.stage}-CUPIdentityProvider'
@@ -54,9 +57,12 @@ To create a new identity provider for your user pool, for example Facebook
         Client_id: 'YourFacebookAppID'
         Client_secret: 'YourFacebookAppSecert'
         Authorize_scopes: 'public_profile,email'
+        AttributeMapping:
+          Email: "email"
 ```
 
 After you create the identity provider, you need to enable it on the user pool client settings
+
 ```
     AppUserPoolClientSettings:
       Type: 'Custom::${self:service}-${self:provider.stage}-CUPClientSettings'
@@ -67,9 +73,9 @@ After you create the identity provider, you need to enable it on the user pool c
       Properties:
         ServiceToken:
           Fn::GetAtt: [ CUPClientSettingsLambdaFunction, Arn]
-        UserPoolId: 
+        UserPoolId:
           Ref: AppUserPool
-        UserPoolClientId: 
+        UserPoolClientId:
           Ref: AppUserPoolClient
         SupportedIdentityProviders:
           - COGNITO
