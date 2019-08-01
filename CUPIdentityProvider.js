@@ -15,7 +15,8 @@ module.exports.handler = async event => {
       Client_id,
       Client_secret,
       Token_request_method,
-      Token_url
+      Token_url,
+      AttributeMapping
     } = event.ResourceProperties;
     switch (event.RequestType) {
       case "Create":
