@@ -58,7 +58,7 @@ To create a new identity provider for your user pool, for example Facebook
         Client_secret: 'YourFacebookAppSecert'
         Authorize_scopes: 'public_profile,email'
         AttributeMapping:
-          Email: "email"
+          email: "email"
 ```
 
 After you create the identity provider, you need to enable it on the user pool client settings

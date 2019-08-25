@@ -94,7 +94,7 @@ resources:
         Client_secret: "YourFacebookAppSecert"
         Authorize_scopes: "public_profile,email"
         AttributeMapping:
-          Email: "email"
+          email: "email"
     GoogleIdp:
       Type: "Custom::${self:service}-${self:provider.stage}-CUPIdentityProvider"
       DependsOn:
@@ -110,7 +110,7 @@ resources:
         Client_secret: "YourGoogleAppSecert"
         Authorize_scopes: "profile email openid"
         AttributeMapping:
-          Email: "email"
+          email: "email"
     AmazonIdp:
       Type: "Custom::${self:service}-${self:provider.stage}-CUPIdentityProvider"
       DependsOn:
@@ -126,7 +126,7 @@ resources:
         Client_secret: "YourAmazonAppSecert"
         Authorize_scopes: "profile"
         AttributeMapping:
-          Email: "email"
+          email: "email"
     AppUserPoolClientSettings:
       Type: "Custom::${self:service}-${self:provider.stage}-CUPClientSettings"
       DependsOn:
