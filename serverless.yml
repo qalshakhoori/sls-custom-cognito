@@ -2,10 +2,11 @@ service: SLS-Cognito
 
 provider:
   name: aws
-  runtime: nodejs8.10
+  runtime: nodejs10.x
   region: ${opt:region, 'us-east-1'}
   stage: ${opt:stage, 'dev'}
   memorySize: 128
+  lambdaHashingVersion: 20201221
 
 plugins:
   - serverless-pseudo-parameters
@@ -24,36 +25,36 @@ functions:
 resources:
   Resources:
     LambdaforCognito:
-      Type: "AWS::IAM::Role"
+      Type: 'AWS::IAM::Role'
       Properties:
         RoleName: ${self:service}-${self:provider.stage}-LambdaforCognito
         AssumeRolePolicyDocument:
-          Version: "2012-10-17"
+          Version: '2012-10-17'
           Statement:
             - Effect: Allow
-              Action: "sts:AssumeRole"
+              Action: 'sts:AssumeRole'
               Principal:
                 Service: lambda.amazonaws.com
         Policies:
           - PolicyName: LambdaforCognitoPolicy
             PolicyDocument:
-              Version: "2012-10-17"
+              Version: '2012-10-17'
               Statement:
                 - Effect: Allow
                   Action:
-                    - "cognito-idp:UpdateUserPoolClient"
-                    - "cognito-idp:CreateUserPoolDomain"
-                    - "cognito-idp:DeleteUserPoolDomain"
-                    - "cognito-idp:DescribeUserPoolDomain"
-                    - "cognito-idp:CreateIdentityProvider"
-                    - "cognito-idp:UpdateIdentityProvider"
-                    - "cognito-idp:DeleteIdentityProvider"
-                  Resource: "arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/*"
+                    - 'cognito-idp:UpdateUserPoolClient'
+                    - 'cognito-idp:CreateUserPoolDomain'
+                    - 'cognito-idp:DeleteUserPoolDomain'
+                    - 'cognito-idp:DescribeUserPoolDomain'
+                    - 'cognito-idp:CreateIdentityProvider'
+                    - 'cognito-idp:UpdateIdentityProvider'
+                    - 'cognito-idp:DeleteIdentityProvider'
+                  Resource: 'arn:aws:cognito-idp:#{AWS::Region}:#{AWS::AccountId}:userpool/*'
                 - Effect: Allow
                   Action:
-                    - "logs:CreateLogGroup"
-                    - "logs:CreateLogStream"
-                    - "logs:PutLogEvents"
+                    - 'logs:CreateLogGroup'
+                    - 'logs:CreateLogStream'
+                    - 'logs:PutLogEvents'
                   Resource:
                     - Fn::GetAtt: [CUPDomainLogGroup, Arn]
                     - Fn::GetAtt: [CUPClientSettingsLogGroup, Arn]
@@ -63,14 +64,14 @@ resources:
       Properties:
         UserPoolName: AppUserPool
     AppUserPoolClient:
-      Type: "AWS::Cognito::UserPoolClient"
+      Type: 'AWS::Cognito::UserPoolClient'
       Properties:
         ClientName: AppUserPoolClient
         GenerateSecret: true
         UserPoolId:
           Ref: AppUserPool
     AppUserPoolDomain:
-      Type: "Custom::${self:service}-${self:provider.stage}-CUPDomain"
+      Type: 'Custom::${self:service}-${self:provider.stage}-CUPDomain'
       DependsOn:
         - CUPDomainLambdaFunction
       Properties:
@@ -78,9 +79,9 @@ resources:
           Fn::GetAtt: [CUPDomainLambdaFunction, Arn]
         UserPoolId:
           Ref: AppUserPool
-        Domain: "appuserpool01234"
+        Domain: 'appuserpool01234'
     FacebookIdp:
-      Type: "Custom::${self:service}-${self:provider.stage}-CUPIdentityProvider"
+      Type: 'Custom::${self:service}-${self:provider.stage}-CUPIdentityProvider'
       DependsOn:
         - CUPIdentityProviderLambdaFunction
       Properties:
@@ -90,13 +91,13 @@ resources:
           Ref: AppUserPool
         ProviderName: Facebook
         ProviderType: Facebook
-        Client_id: "YourFacebookAppID"
-        Client_secret: "YourFacebookAppSecert"
-        Authorize_scopes: "public_profile,email"
+        Client_id: 'YourFacebookAppID'
+        Client_secret: 'YourFacebookAppSecert'
+        Authorize_scopes: 'public_profile,email'
         AttributeMapping:
-          email: "email"
+          email: 'email'
     GoogleIdp:
-      Type: "Custom::${self:service}-${self:provider.stage}-CUPIdentityProvider"
+      Type: 'Custom::${self:service}-${self:provider.stage}-CUPIdentityProvider'
       DependsOn:
         - CUPIdentityProviderLambdaFunction
       Properties:
@@ -106,13 +107,13 @@ resources:
           Ref: AppUserPool
         ProviderName: Google
         ProviderType: Google
-        Client_id: "YourGoogleAppID"
-        Client_secret: "YourGoogleAppSecert"
-        Authorize_scopes: "profile email openid"
+        Client_id: 'YourGoogleAppID'
+        Client_secret: 'YourGoogleAppSecert'
+        Authorize_scopes: 'profile email openid'
         AttributeMapping:
-          email: "email"
+          email: 'email'
     AmazonIdp:
-      Type: "Custom::${self:service}-${self:provider.stage}-CUPIdentityProvider"
+      Type: 'Custom::${self:service}-${self:provider.stage}-CUPIdentityProvider'
       DependsOn:
         - CUPIdentityProviderLambdaFunction
       Properties:
@@ -122,13 +123,13 @@ resources:
           Ref: AppUserPool
         ProviderName: LoginWithAmazon
         ProviderType: LoginWithAmazon
-        Client_id: "YourAmazonAppID"
-        Client_secret: "YourAmazonAppSecert"
-        Authorize_scopes: "profile"
+        Client_id: 'YourAmazonAppID'
+        Client_secret: 'YourAmazonAppSecert'
+        Authorize_scopes: 'profile'
         AttributeMapping:
-          email: "email"
+          email: 'email'
     AppUserPoolClientSettings:
-      Type: "Custom::${self:service}-${self:provider.stage}-CUPClientSettings"
+      Type: 'Custom::${self:service}-${self:provider.stage}-CUPClientSettings'
       DependsOn:
         - CUPClientSettingsLambdaFunction
         - FacebookIdp
@@ -146,8 +147,8 @@ resources:
           - Facebook
           - Google
           - LoginWithAmazon
-        CallbackURL: "https://www.yourdomain.com/callback" ##Replace this with your app callback url
-        LogoutURL: "https://www.yourdomain.com/logout" ##Replace this with your app logout url
+        CallbackURL: 'https://www.yourdomain.com/callback' ##Replace this with your app callback url
+        LogoutURL: 'https://www.yourdomain.com/logout' ##Replace this with your app logout url
         AllowedOAuthFlowsUserPoolClient: true
         AllowedOAuthFlows:
           - code
